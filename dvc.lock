@@ -1,0 +1,96 @@
+schema: '2.0'
+stages:
+  split_dataset:
+    cmd: python3 src/split_data.py --config=params.yaml
+    deps:
+    - path: data/raw/train.csv
+      md5: 791e42335500c447273a7dc85f58239e
+      size: 68802655
+    - path: src/split_data.py
+      md5: df00c6fcb603c63b16fdebb7f58c85b3
+      size: 2312
+    - path: src/utils.py
+      md5: 3a7bd3a3ce13a99af98c69e8343e5e7d
+      size: 2573
+    outs:
+    - path: data/interim/data_folds.csv
+      md5: 79ae7a03c7841b320e9998413b7ac547
+      size: 60657058
+    - path: data/interim/test.csv
+      md5: 6e3df3cfba15b158c194ae407fd422c3
+      size: 6462398
+  clean_dataset:
+    cmd: python3 src/clean_data.py --config=params.yaml
+    deps:
+    - path: data/interim/data_folds.csv
+      md5: 79ae7a03c7841b320e9998413b7ac547
+      size: 60657058
+    - path: data/interim/test.csv
+      md5: 6e3df3cfba15b158c194ae407fd422c3
+      size: 6462398
+    - path: src/clean_data.py
+      md5: 376df131afd5491ea11e941f2637d4cf
+      size: 3968
+    - path: src/utils.py
+      md5: 3a7bd3a3ce13a99af98c69e8343e5e7d
+      size: 2573
+    outs:
+    - path: data/processed/data_clean.csv
+      md5: 89446c180550023b8ebbb2ddbadf13f2
+      size: 39630982
+    - path: data/processed/test_clean.csv
+      md5: 7c8455a0f2e470354f04825180beaa7e
+      size: 4203577
+  train_and_evaluate:
+    cmd: python3 src/train_and_evaluate.py --config=params.yaml
+    deps:
+    - path: data/processed/data_clean.csv
+      md5: 89446c180550023b8ebbb2ddbadf13f2
+      size: 39630982
+    - path: src/build_features.py
+      md5: 1eb8d03fe840554bdd25f0cd5ada73cd
+      size: 3031
+    - path: src/train_and_evaluate.py
+      md5: 821b7d5683a6955550111dfd17d11dad
+      size: 4490
+    - path: src/utils.py
+      md5: 3a7bd3a3ce13a99af98c69e8343e5e7d
+      size: 2573
+    outs:
+    - path: models/tfv_features.pkl
+      md5: 1106a373048605a31f71a0cfdd98d63a
+      size: 131166446
+    - path: reports/params_cv.json
+      md5: c4c0de61d2aa93ae07d714b7f5732a72
+      size: 37
+    - path: reports/scores_cv.json
+      md5: 88b00d795fd2da88451aa27372def1fb
+      size: 158
+  predict:
+    cmd: python3 src/predict.py --config=params.yaml
+    deps:
+    - path: data/processed/data_clean.csv
+      md5: 89446c180550023b8ebbb2ddbadf13f2
+      size: 39630982
+    - path: data/processed/test_clean.csv
+      md5: 7c8455a0f2e470354f04825180beaa7e
+      size: 4203577
+    - path: models/tfv_features.pkl
+      md5: 1106a373048605a31f71a0cfdd98d63a
+      size: 131166446
+    - path: src/predict.py
+      md5: 46c5d3d0b93a96d17a6c8f6c82eca823
+      size: 3937
+    - path: src/utils.py
+      md5: 3a7bd3a3ce13a99af98c69e8343e5e7d
+      size: 2573
+    outs:
+    - path: models/model.joblib
+      md5: b6e799336a53f97580720c67cc2c8470
+      size: 2298096
+    - path: reports/params_test.json
+      md5: c4c0de61d2aa93ae07d714b7f5732a72
+      size: 37
+    - path: reports/scores_test.json
+      md5: 50182f9f3d55a79b8ee5f917fda5775d
+      size: 158

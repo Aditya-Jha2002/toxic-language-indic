@@ -1,0 +1,34 @@
+base:
+  project: toxic-language-india
+  random_state: 42
+  target_col: toxic
+
+data_source:
+  raw_data_path: data/raw/train.csv
+
+split_dataset:
+  folds_data_path: data/interim/data_folds.csv
+  fold_num: 5
+  test_data_path: data/interim/test.csv
+  test_size: 0.1
+
+clean_dataset:
+  clean_folds_path: data/processed/data_clean.csv
+  clean_test_path: data/processed/test_clean.csv
+
+build_features:
+  tfv_artifact_path: models/tfv_features.pkl
+
+estimators:
+  LogisticRegression:
+    params:
+      C: 1.0
+      l1_ratio: 0.4
+
+model_dir: models
+
+reports:
+  params_cv: reports/params_cv.json
+  scores_cv: reports/scores_cv.json
+  scores_test: reports/scores_test.json
+  params_test: reports/params_test.json

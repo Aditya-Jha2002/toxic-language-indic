@@ -1,0 +1,46 @@
+stages:
+  split_dataset:
+    cmd: python3 src/split_data.py --config=params.yaml
+    deps:
+      - src/split_data.py
+      - data/raw/train.csv
+      - src/utils.py
+    outs:
+      - data/interim/data_folds.csv
+      - data/interim/test.csv
+
+  clean_dataset:
+    cmd: python3 src/clean_data.py --config=params.yaml
+    deps:
+      - src/clean_data.py
+      - data/interim/data_folds.csv
+      - data/interim/test.csv
+      - src/utils.py
+    outs:
+      - data/processed/data_clean.csv
+      - data/processed/test_clean.csv
+
+  train_and_evaluate:
+    cmd: python3 src/train_and_evaluate.py --config=params.yaml
+    deps:
+      - src/train_and_evaluate.py
+      - src/build_features.py
+      - data/processed/data_clean.csv
+      - src/utils.py
+    outs:
+      - models/tfv_features.pkl
+      - reports/params_cv.json
+      - reports/scores_cv.json
+
+  predict:
+    cmd:  python3 src/predict.py --config=params.yaml
+    deps:
+      - src/predict.py
+      - models/tfv_features.pkl
+      - data/processed/data_clean.csv
+      - data/processed/test_clean.csv
+      - src/utils.py
+    outs:
+      - models/model.joblib
+      - reports/params_test.json
+      - reports/scores_test.json
