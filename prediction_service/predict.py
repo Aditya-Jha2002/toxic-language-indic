@@ -16,7 +16,7 @@ def api_response(request_dict):
 
     request_text_clean = clean_data.DataLoader(config_path=params_path)._preprocess_text(request_text)
 
-    request_text_features = build_features.BuildFeatures(config_path=params_path)._build_features_text(request_text_clean)
+    request_text_features = build_features.BuildFeatures(config_path=params_path)._build_features_text(request_text_clean, lang="en")
     
     model_dir = os.path.join(config["model_dir"], "model.joblib")
     model = joblib.load(model_dir)
@@ -29,3 +29,23 @@ def api_response(request_dict):
         toxic = False
 
     return toxic, prediction_proba
+
+   #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+import fasttext
+
+class LanguageIdentification:
+
+    def __init__(self):
+        pretrained_lang_model = "/tmp/lid.176.bin"
+        self.model = fasttext.load_model(pretrained_lang_model)
+
+    def predict_lang(self, text):
+        predictions = self.model.predict(text, k=1) # returns top 2 matching languages
+        return predictions
+
+if __name__ == '__main__':
+    LANGUAGE = LanguageIdentification()
+    lang = LANGUAGE.predict_lang("Hi, how are you?")
+    print(lang)

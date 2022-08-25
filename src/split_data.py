@@ -1,19 +1,19 @@
 # -*- coding: utf-8 -*-
+import os
 import argparse
+import pandas as pd
 from src.utils import Utils
 from sklearn.model_selection import train_test_split, StratifiedKFold
-
 
 class CVFoldsDataset:
     """Split the dataset into kfolds dataset and test dataset"""
 
     def __init__(self, config_path):
         config = Utils().read_params(config_path)
-        self.raw_data_path = config["data_source"]["raw_data_path"]
-        self.folds_data_path = config["split_dataset"]["folds_data_path"]
+        self.merge_dir = config["load_dataset"]["merge_dir"]
         self.fold_num = config["split_dataset"]["fold_num"]
-        self.test_data_path = config["split_dataset"]["test_data_path"]
         self.test_size = config["split_dataset"]["test_size"]
+        self.split_dir = config["split_dataset"]["split_dir"]
         self.random_state = config["base"]["random_state"]
 
     def cv_folds_dataset(self):
@@ -21,10 +21,11 @@ class CVFoldsDataset:
         fold datasets ready to be further cleaned on (saved in ../interim),
         and test dataset ready to be further cleaned on (saved in ../interim)
         """
-        # Load the raw data
-        df = Utils().get_data(self.raw_data_path)
+        for lang in ["english", "tamil", "hindi"]:
+            self._folds_and_test_dataset(lang)
 
-        df.drop(["severe_toxic", "obscene", "threat", "insult", "identity_hate"], axis=1, inplace=True)
+    def _folds_and_test_dataset(self, lang):
+        df = pd.read_csv(os.path.join(self.merge_dir, f"{lang}_merge.csv"))
 
         # Create test set
         df, test = train_test_split(
@@ -35,9 +36,9 @@ class CVFoldsDataset:
         df_folds = self._create_folds(df)
 
         # Save the folds data
-        df_folds.to_csv(self.folds_data_path, index=False)
+        df_folds.to_csv(os.path.join(self.split_dir, f"{lang[:2]}_folds.csv"), index=False)
         # Save the test data
-        test.to_csv(self.test_data_path, index=False)
+        test.to_csv(os.path.join(self.split_dir, f"{lang[:2]}_test.csv"), index=False)
 
     def _create_folds(self, data):
         """Create folds for cross-validation"""

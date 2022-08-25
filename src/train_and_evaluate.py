@@ -16,9 +16,12 @@ class Trainer:
 
         config = Utils().read_params(config_path)
 
-        self.clean_data_path = config["clean_dataset"]["clean_folds_path"]
+        self.clean_dir = config["clean_dataset"]["clean_dir"]
         self.model_dir = config["model_dir"]
-        self.tfv_artifact_path = config["build_features"]["tfv_artifact_path"]
+
+        self.en_fasttext_path = config["build_features"]["en_fasttext_path"]
+        self.hi_fasttext_path = config["build_features"]["hi_fasttext_path"]
+        self.ta_fasttext_path = config["build_features"]["ta_fasttext_path"]
 
         self.C = config["estimators"]["LogisticRegression"]["params"]["C"]
         self.l1_ratio = config["estimators"]["LogisticRegression"]["params"]["l1_ratio"]
@@ -27,12 +30,12 @@ class Trainer:
         self.scores_file = config["reports"]["scores_cv"]
         self.params_file = config["reports"]["params_cv"]
 
-    def train_and_evaluate(self):
+    def train_and_evaluate(self, lang):
         """Train the model and evaluate the model performance"""
         running_accuracy, running_f1, running_roc_auc, running_log_loss = [], [], [], []
 
         for i in range(1, 6):
-            (accuracy, f1, roc_auc, log_loss_score) = self._train_one_fold(i - 1)
+            (accuracy, f1, roc_auc, log_loss_score) = self._train_one_fold(i - 1, lang)
 
             running_accuracy.append(float(accuracy))
             running_f1.append(float(f1))
@@ -57,7 +60,9 @@ class Trainer:
     #####################################################
     # Log Parameters and Scores for the deployed modle
 
-        with open(self.scores_file, "w") as f:
+        scores_file = self.scores_file.split(".")[0] + "_" + lang + ".csv"
+        params_file = self.params_file.split(".")[0] + "_" + lang + ".csv"
+        with open(scores_file, "w") as f:
             scores = {
                 "accuracy_score": running_accuracy,
                 "f1_score": running_f1,
@@ -66,7 +71,7 @@ class Trainer:
             }
             json.dump(scores, f, indent=4)
 
-        with open(self.params_file, "w") as f:
+        with open(params_file, "w") as f:
             params = {
                 "C": self.C,
                 "l1_ratio": self.l1_ratio,
@@ -74,13 +79,9 @@ class Trainer:
             json.dump(params, f, indent=4)
     #####################################################
 
-    def _train_one_fold(self, fold_num):
+    def _train_one_fold(self, fold_num, lang):
         print(f"Training fold {fold_num} ...")
-
-        store_tfv_artifact = False
-        if fold_num == 0:
-            store_tfv_artifact = True
-        xtrain_tfv, ytrain, xvalid_tfv, yvalid = BuildFeatures(self.config_path).build_features_train(fold_num, store_tfv_artifact)
+        xtrain_tfv, ytrain, xvalid_tfv, yvalid = BuildFeatures(self.config_path).build_features_train(fold_num, lang)
         
         clf = LogisticRegression(
             C=self.C,
@@ -118,4 +119,4 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument("--config", default="params.yaml")
     parsed_args = args.parse_args()
-    Trainer(config_path=parsed_args.config).train_and_evaluate()
+    Trainer(config_path=parsed_args.config).train_and_evaluate("en")

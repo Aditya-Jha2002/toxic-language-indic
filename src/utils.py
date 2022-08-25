@@ -1,5 +1,9 @@
+import os
+import io
+import json
 import yaml
 import argparse
+from tqdm import tqdm
 import pandas as pd
 
 
@@ -15,6 +19,18 @@ class Utils:
         df = pd.read_csv(data_path)
         return df
 
+    def store_fasttext_embeddings(self, fname, embedding_dir, lang):
+        fin = io.open(
+            os.path.join(embedding_dir, fname),'r', encoding='utf-8', newline='\n', errors='ignore'
+            )
+        n, d = map(int, fin.readline().split()) 
+        data = {}
+        for line in tqdm(fin, total = n):
+            tokens = line.rstrip().split(' ')
+            data[tokens[0]] = list(map(float, tokens[1:])) 
+        json.dump(data, open(os.path.join(embedding_dir, f"ft_embed_{lang}.json"), 'w'))
+
+        # time lapsed: 12:17
 
 contractions = {
     "ain't": "is not",
@@ -101,4 +117,4 @@ if __name__ == "__main__":
     args.add_argument("--config", default="params.yaml")
     parsed_args = args.parse_args()
 
-    data = Utils().get_data(config_path=parsed_args.config)
+    data = Utils().store_fasttext_embeddings("cc.hi.300.vec", "fasttext", "hi")

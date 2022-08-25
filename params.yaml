@@ -2,22 +2,34 @@ base:
   project: toxic-language-india
   random_state: 42
   target_col: toxic
+  langs: ["en", "hi", "ta"]
 
-data_source:
-  raw_data_path: data/raw/train.csv
+load_dataset:
+  base_dir: data/raw/
+  en_train_path: english_train.csv
+  hi_train_path: hindi_train.csv
+  hi_val_path: hindi_val.csv
+  hi_test_path: hindi_test.csv
+  ta_train_path: tamil_train.csv
+  ta_val_path: tamil_val.csv
+  ta_test_path: tamil_test.csv
+  merge_dir: data/interim/
+  en_merge_path: english_merge.csv
+  hi_merge_path: hindi_merge.csv
+  ta_merge_path: tamil_merge.csv
 
 split_dataset:
-  folds_data_path: data/interim/data_folds.csv
+  split_dir: data/interim/
   fold_num: 5
-  test_data_path: data/interim/test.csv
   test_size: 0.1
 
 clean_dataset:
-  clean_folds_path: data/processed/data_clean.csv
-  clean_test_path: data/processed/test_clean.csv
+  clean_dir: data/processed/
 
 build_features:
-  tfv_artifact_path: models/tfv_features.pkl
+  en_fasttext_path: fasttext/crawl-300d-2M.vec
+  hi_fasttext_path: fasttext/cc.hi.300.vec
+  ta_fasttext_path: fasttext/cc.ta.300.vec
 
 estimators:
   LogisticRegression:
